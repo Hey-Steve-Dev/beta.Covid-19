@@ -59,16 +59,7 @@ class RecordSet{
       this.url = url
       
   }
-  async getAllDataPerCase(){
-   var response = await fetch(this.url);
-   var summaryData = await response.json();
-   this.summaryData = summaryData;
-   return this.summaryData;
-
-  }
-
   
-
   async getCasesPerState(){
    var response = await fetch(this.url);
    var summaryData = await response.json();
@@ -77,8 +68,7 @@ class RecordSet{
    let today = null;
    let theDayBefore = null;
    let aDate  = fromWhen.value;
-   
-   
+      
    summaryData.forEach(country => {
       
       if(country.Province === searchStateSelect.value){
@@ -114,7 +104,6 @@ class RecordSet{
    let casesToday = null;
    let casesYesterday = null;
    let today = null;
-   let yesterday = null;
    let theDayBefore = null;
    let aDate  = fromWhen.value;
    
@@ -189,12 +178,6 @@ class RecordSet{
    return {CountryCases: "Country Cases", CasesToday: `${casesToday}`, CasesYesterday: `${casesYesterday}`, };
 
   }
-
-
-
-
-
-
   
 }
 
@@ -268,23 +251,21 @@ class UI{
          }
          
          
-         let thePlace = "";
-         if (searchCountySelect.value === "" && searchStateSelect.value !== ""){thePlace = searchStateSelect.value};
-
-         if (searchCountySelect.value !== "" && searchStateSelect.value !== ""){
-           thePlace = searchCountySelect.value + " county " + searchStateSelect.value 
-         };
-
-         if (searchCountySelect.value === "" && searchStateSelect.value === ""){
-            let countrySelectText = searchCountry.options[searchCountry.selectedIndex];
-            thePlace = countrySelectText.text; 
-          };
+         let thePlace = findThePlace();
+         
          
            totalCases = this.totalCases
-           this.newCases = numberWithCommas(this.newCases)
+           
+           if(!this.newCases || this.newCases === "null"){this.newCases = "No data this day."
+           } else{this.newCases = numberWithCommas(this.newCases)}
+                           
            NewConfirmed.innerHTML = `New confirmed cases in ${thePlace} (${this.newCases})`
-           this.totalCases = numberWithCommas(this.totalCases)
+
+           if(!this.totalCases || this.totalCases === "null"){this.totalCases = "No data this day."
+           } else{this.totalCases = numberWithCommas(this.totalCases)}
+                     
            TotalConfirmed.innerHTML = `Total confirmed cases ${thePlace} (${this.totalCases})`
+           areStatsPopulated()
            
          
       }
@@ -299,38 +280,34 @@ class UI{
             this.newDeaths=0
          }
          
-         let thePlace = "";
-         if (searchCountySelect.value === "" && searchStateSelect.value !== ""){thePlace = searchStateSelect.value};
+         let thePlace = findThePlace();
+         
+         if(!this.newDeaths || this.newDeaths === "null"){this.newDeaths = "No data this day."
+         }else{this.newDeaths = numberWithCommas(this.newDeaths)}
 
-         if (searchCountySelect.value !== "" && searchStateSelect.value !== ""){
-           thePlace = searchCountySelect.value + " county " + searchStateSelect.value 
-         };
-
-         if (searchCountySelect.value === "" && searchStateSelect.value === ""){
-            let countrySelectText = searchCountry.options[searchCountry.selectedIndex];
-            thePlace = countrySelectText.text; 
-         };
-         totalDeaths = this.totalDeaths;
-         this.newDeaths = numberWithCommas(this.newDeaths)
          NewDeaths.innerHTML = `New confirmed deaths in ${thePlace} (${this.newDeaths})`
-         this.totalDeaths = numberWithCommas(this.totalDeaths)
+         
+         totalDeaths = this.totalDeaths;
+         if(!this.totalDeaths || this.totalDeaths === "null"){this.totalDeaths = "No data this day."
+         }else{this.totalDeaths = numberWithCommas(this.totalDeaths)}
+         
          TotalDeaths.innerHTML = `Total confirmed deaths in ${thePlace} (${this.totalDeaths})`
+         areStatsPopulated()
          
       }
 
       setRecovered(answerObj){
          this.recovered = answerObj.CasesToday
          totalRecovered = this.recovered
-         this.recovered = numberWithCommas(this.recovered)
-         NewRecovered.innerHTML = `Confirmed recovered here (${this.recovered})`
+                  
+         if(!this.recovered || this.recovered === "null"){this.recovered = "No data this day."
+         }else{this.recovered = numberWithCommas(this.recovered)}
+
+         let thePlace = findThePlace();
+         NewRecovered.innerHTML = `Confirmed recoveries in ${thePlace} (${this.recovered})`
+         areStatsPopulated()
       }
+            
       
-      
-      showData(){
-         console.log(this.newCases + "New Cases")
-         console.log(this.totalCases + "Total Cases")
-         console.log(this.newDeaths + "New Deaths")
-         console.log(this.totalDeaths + "Total Deaths")
-      }
       
 }

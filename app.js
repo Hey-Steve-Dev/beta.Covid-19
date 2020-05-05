@@ -12,13 +12,17 @@ var trueToday = new Date()
 trueToday = cleanDate(trueToday)
 fromWhen.value = trueToday
 
+popCountryList()
+
+
+
+
+function popCountryList(){
 const countries = new SummaryData("https://api.covid19api.com/summary");
 countries.getAllCountries()
 .then(data => popStateList())
-.catch(err => console.log(err));
-
-
-
+.catch(err => showError(err));
+}
 
 function popStateList(){
   //clear what is in the list for county
@@ -35,10 +39,40 @@ function popStateList(){
    let newSlug = new SlugMaker("confirmed",true);
    var states = new StateList(newSlug.returnUrl());
    states.getAllStates()
-   .then(data => console.log("states loaded"))
-   .catch(err => console.log(err));
+   .then(data => firstLoad())
+   .catch(err => showError(err));
 }
+function firstLoad(){
+   let newSlug = new SlugMaker("confirmed",false);
+   console.log(newSlug.returnUrl());
+   let newCases = new RecordSet(newSlug.returnUrl());
+     
+   newCases.getCasesPerCountry()
+   .then(data => ui.setCases(data))
+   .catch(err => showError(err));
+  
+   
+   newSlug = new SlugMaker("deaths",false);
+ 
+   let newDeaths = new RecordSet(newSlug.returnUrl());
+     
+   newDeaths.getCasesPerCounty()
+   .then(data => ui.setDeaths(data))
+   .catch(err => showError(err));
+   
+   newSlug = new SlugMaker("recovered",false);
 
+   let newRecovered = new RecordSet(newSlug.returnUrl());
+     
+   newRecovered.getCasesPerCounty()
+   .then(data => ui.setRecovered(data))
+   .catch(err => showError(err));
+ 
+   let countryText = searchCountry.options[searchCountry.selectedIndex].text
+   changeLocationHeader(countryText)
+
+   setTimeout(populateRates, 500);
+}
 //event listener for County  searchCountySelect
 searchCountySelect.addEventListener("change", function searchCounty(){
 
@@ -49,7 +83,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
      
    newCases.getCasesPerCounty()
    .then(data => ui.setCases(data))
-   .catch(err => console.log(err));
+   .catch(err => showError(err));
    
    
  
@@ -63,7 +97,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
    
    newCases.getCasesPerState()
    .then(data => ui.setCases(data))
-   .catch(err => console.log(err));
+   .catch(err => showError(err));
  
    newSlug = new SlugMaker("deaths",false);
  
@@ -71,7 +105,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
      
    newDeaths.getCasesPerState()
    .then(data => ui.setDeaths(data))
-   .catch(err => console.log(err));
+   .catch(err => showError(err));
 
    changeLocationHeader(searchStateSelect.value);
  
@@ -81,14 +115,15 @@ searchCountySelect.addEventListener("change", function searchCounty(){
 
  searchCountry.addEventListener("change", function populateStatCards(){
   
-   popStateList();
+   popStateList()
+   resetRates()
    let newSlug = new SlugMaker("confirmed",false);
    console.log(newSlug.returnUrl());
    let newCases = new RecordSet(newSlug.returnUrl());
      
    newCases.getCasesPerCountry()
    .then(data => ui.setCases(data))
-   .catch(data => console.log(err));
+   .catch(data => showError(err));
   
    
    newSlug = new SlugMaker("deaths",false);
@@ -97,7 +132,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
      
    newDeaths.getCasesPerCounty()
    .then(data => ui.setDeaths(data))
-   .catch(err => console.log(err));
+   .catch(err => showError(err));
    
    newSlug = new SlugMaker("recovered",false);
 
@@ -105,12 +140,12 @@ searchCountySelect.addEventListener("change", function searchCounty(){
      
    newRecovered.getCasesPerCounty()
    .then(data => ui.setRecovered(data))
-   .catch(err => console.log(err));
+   .catch(err => showError(err));
  
    let countryText = searchCountry.options[searchCountry.selectedIndex].text
    changeLocationHeader(countryText)
 
-   setTimeout(populateRates, 500);
+   //setTimeout(populateRates, 500);
    
    
    
@@ -126,7 +161,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
      
    newCases.getCasesPerCountry()
    .then(data => ui.setCases(data))
-   .catch(data => console.log(err));
+   .catch(data => showError(err));
   
    
    newSlug = new SlugMaker("deaths",false);
@@ -135,7 +170,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
      
    newDeaths.getCasesPerCounty()
    .then(data => ui.setDeaths(data))
-   .catch(err => console.log(err));
+   .catch(err => showError(err));
 
    newSlug = new SlugMaker("recovered",false);
 
@@ -143,7 +178,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
      
    newRecovered.getCasesPerCounty()
    .then(data => ui.setRecovered(data))
-   .catch(err => console.log(err));
+   .catch(err => showError(err));
 
    setTimeout(populateRates, 500);
     
@@ -185,16 +220,89 @@ let mortalRate = null;
 let survRate = null;
 let activeCases = null;
 
+console.log(totalCases)
+console.log(totalDeaths)
+console.log(totalRecovered)
+
 mortalRate = (totalDeaths/totalCases)*100
 mortalRate = Math.round(mortalRate)
 survRate = (totalRecovered/totalCases)*100
 survRate = Math.round(survRate)
-
 activeCases = totalCases - totalRecovered
-mortRate.innerHTML = ("Mortality rate " +mortalRate + "%")
-surRate.innerHTML= ("Survival rate " + survRate + "%")
-active.innerHTML = (numberWithCommas(activeCases) + " active")
+
+console.log(mortalRate)
+console.log(survRate)
+console.log(activeCases)
+
+if(!mortalRate){
+   mortRate.innerHTML = ("Mortality rate unknown")
+} else {mortRate.innerHTML = ("Mortality rate " +mortalRate + "%")}
+
+if(!survRate){
+   surRate.innerHTML= ("Survival rate unknown")
+   } else {surRate.innerHTML= ("Survival rate " + survRate + "%")}
+
+if(!activeCases){
+   active.innerHTML= ("Active cases unknown")
    
+} else {active.innerHTML = (numberWithCommas(activeCases) + " active")}
+
+   
+}
+
+function findThePlace(){
+   let thePlace = null;
+         if (searchCountySelect.value === "" && searchStateSelect.value !== ""){thePlace = searchStateSelect.value};
+
+         if (searchCountySelect.value !== "" && searchStateSelect.value !== ""){
+           thePlace = searchCountySelect.value + " county " + searchStateSelect.value 
+         };
+
+         if (searchCountySelect.value === "" && searchStateSelect.value === ""){
+            let countrySelectText = searchCountry.options[searchCountry.selectedIndex];
+            thePlace = countrySelectText.text; 
+         };
+      return thePlace;
+}
+
+
+function areStatsPopulated(){
+if(!totalCases && !totalDeaths && !totalRecovered && !totalActive){
+   populateRates()
+}
+}
+
+function resetRates(){
+ totalCases = null;
+ totalDeaths = null;
+ totalRecovered = null;
+ totalActive = null;
+}
+
+
+function showError(error){
+   //create div
+   const errorDiv = document.createElement('div');
+   
+   // get elements
+   const card = document.querySelector('.card');
+   const heading = document.querySelector('.heading');
+   
+   // add class
+   errorDiv.className = 'alert alert-danger mx-auto';
+   // create text note and append to div
+   errorDiv.appendChild(document.createTextNode("Something went wrong with the request, please try again."));
+   
+   //Instert error above heading
+   card.insertBefore(errorDiv, heading);
+   console.log(error);
+   // Clear error after 3 seconds
+   setTimeout(clearError, 5000);
+   
+}
+
+function clearError(){
+document.querySelector('.alert').remove();
 }
 
 
