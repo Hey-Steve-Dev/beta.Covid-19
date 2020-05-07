@@ -2,28 +2,44 @@ const ui = new UI();
 var totalCases = null;
 var totalDeaths = null;
 var totalRecovered = null;
-var totalActive = null;
 const mortRate = document.querySelector('#mortRate');
 const surRate = document.querySelector('#surRate');
 const active = document.querySelector('#active');
-
-//populateCountry drop down list
+const NewConfirmedlbl = document.querySelector('#NewConfirmed');
+const TotalConfirmedlbl = document.querySelector('#TotalConfirmed');
+const NewDeathslbl = document.querySelector('#NewDeaths');
+const TotalDeathslbl = document.querySelector('#TotalDeaths');
+const NewRecoveredlbl = document.querySelector('#NewRecovered');
 var trueToday = new Date()
-trueToday = cleanDate(trueToday)
-fromWhen.value = trueToday
+var USdayOneCases = [];
+var USdayOneDeaths = [];
+var USdayOneReco = [];
+
 
 popCountryList()
 
+//event listener for County  
+searchCountySelect.addEventListener("change", changeCounty);
+//event listener for State
+ searchStateSelect.addEventListener('change',changeState);
+//event listener for Country
+ searchCountry.addEventListener("change", changeCountry );
+//event listener for Date
+ fromWhen.addEventListener("change", changeTime);
 
 
-
+//this calls summary api and gets country and populates it then calls pop states below.
 function popCountryList(){
+
+trueToday = cleanDate(trueToday)
+fromWhen.value = trueToday
 const countries = new SummaryData("https://api.covid19api.com/summary");
 countries.getAllCountries()
 .then(data => popStateList())
 .catch(err => showError(err));
 }
 
+//this fills in the state list according to the country 
 function popStateList(){
   //clear what is in the list for county
   var length = searchCountySelect.options.length;
@@ -39,154 +55,50 @@ function popStateList(){
    let newSlug = new SlugMaker("confirmed",true);
    var states = new StateList(newSlug.returnUrl());
    states.getAllStates()
-   .then(data => firstLoad())
+   .then(data => startUSA() )
    .catch(err => showError(err));
 }
-function firstLoad(){
-   let newSlug = new SlugMaker("confirmed",false);
-   console.log(newSlug.returnUrl());
-   let newCases = new RecordSet(newSlug.returnUrl());
-     
-   newCases.getCasesPerCountry()
-   .then(data => ui.setCases(data))
-   .catch(err => showError(err));
-  
-   
-   newSlug = new SlugMaker("deaths",false);
- 
-   let newDeaths = new RecordSet(newSlug.returnUrl());
-     
-   newDeaths.getCasesPerCounty()
-   .then(data => ui.setDeaths(data))
-   .catch(err => showError(err));
-   
-   newSlug = new SlugMaker("recovered",false);
+//this fills in the county list according to the state
+function popCountyList(){
 
-   let newRecovered = new RecordSet(newSlug.returnUrl());
-     
-   newRecovered.getCasesPerCounty()
-   .then(data => ui.setRecovered(data))
-   .catch(err => showError(err));
- 
-   let countryText = searchCountry.options[searchCountry.selectedIndex].text
-   changeLocationHeader(countryText)
+  var length = searchCountySelect.options.length;
+  for (i = length-1; i >= 0; i--) {
+    searchCountySelect.options[i] = null;
+  }
 
-   setTimeout(populateRates, 500);
-}
-//event listener for County  searchCountySelect
-searchCountySelect.addEventListener("change", function searchCounty(){
-
-     
-   let newSlug = new SlugMaker("confirmed",false);
-   
-   let newCases = new RecordSet(newSlug.returnUrl());
-     
-   newCases.getCasesPerCounty()
-   .then(data => ui.setCases(data))
-   .catch(err => showError(err));
-   
-   
- 
- });
-
- searchStateSelect.addEventListener('change',function populateStatCardsFromState() {
-   
-   let newSlug = new SlugMaker("confirmed",false);
-   
-   let newCases = new RecordSet(newSlug.returnUrl());
-   
-   newCases.getCasesPerState()
-   .then(data => ui.setCases(data))
-   .catch(err => showError(err));
- 
-   newSlug = new SlugMaker("deaths",false);
- 
-   let newDeaths = new RecordSet(newSlug.returnUrl());
-     
-   newDeaths.getCasesPerState()
-   .then(data => ui.setDeaths(data))
-   .catch(err => showError(err));
-
-   changeLocationHeader(searchStateSelect.value);
- 
-   
-  
- } );
-
- searchCountry.addEventListener("change", function populateStatCards(){
-  
-   popStateList()
-   resetRates()
-   let newSlug = new SlugMaker("confirmed",false);
-   console.log(newSlug.returnUrl());
-   let newCases = new RecordSet(newSlug.returnUrl());
-     
-   newCases.getCasesPerCountry()
-   .then(data => ui.setCases(data))
-   .catch(data => showError(err));
-  
-   
-   newSlug = new SlugMaker("deaths",false);
- 
-   let newDeaths = new RecordSet(newSlug.returnUrl());
-     
-   newDeaths.getCasesPerCounty()
-   .then(data => ui.setDeaths(data))
-   .catch(err => showError(err));
-   
-   newSlug = new SlugMaker("recovered",false);
-
-   let newRecovered = new RecordSet(newSlug.returnUrl());
-     
-   newRecovered.getCasesPerCounty()
-   .then(data => ui.setRecovered(data))
-   .catch(err => showError(err));
- 
-   let countryText = searchCountry.options[searchCountry.selectedIndex].text
-   changeLocationHeader(countryText)
-
-   //setTimeout(populateRates, 500);
-   
-   
-   
-  
- } );
-
- fromWhen.addEventListener("change", function searchTime(){
-   
-   //this always assumes you are changing country
-   
-   let newSlug = new SlugMaker("confirmed",false);
-   let newCases = new RecordSet(newSlug.returnUrl());
-     
-   newCases.getCasesPerCountry()
-   .then(data => ui.setCases(data))
-   .catch(data => showError(err));
-  
-   
-   newSlug = new SlugMaker("deaths",false);
- 
-   let newDeaths = new RecordSet(newSlug.returnUrl());
-     
-   newDeaths.getCasesPerCounty()
-   .then(data => ui.setDeaths(data))
-   .catch(err => showError(err));
-
-   newSlug = new SlugMaker("recovered",false);
-
-   let newRecovered = new RecordSet(newSlug.returnUrl());
-     
-   newRecovered.getCasesPerCounty()
-   .then(data => ui.setRecovered(data))
-   .catch(err => showError(err));
-
-   setTimeout(populateRates, 500);
+     USdayOneCases.collectData()
+     .then (data => addToCounty(data))
+     .catch(err => showError(err))
     
-   
-});
+    
 
 
- function changeLocationHeader(place){
+}
+
+function addToCounty(data){
+  let arrayOfCountys = []
+  data.forEach(Province => {
+    
+    if(Province.Province === searchStateSelect.value){
+      arrayOfCountys.push(Province.City)
+     }
+    })
+
+    arrayOfCountys = arrayOfCountys.filter((a, b) => arrayOfCountys.indexOf(a) === b)
+
+    //Sort
+    arrayOfCountys = arrayOfCountys.sort();
+    searchCountySelect.options[searchCountySelect.options.length] = new Option('', '', true,true);
+    arrayOfCountys.forEach(arrayOfCountys =>{
+       //add to select state list box
+       searchCountySelect.options[searchCountySelect.options.length] = new Option(arrayOfCountys);
+    })
+
+
+}
+
+//this changes the location and date on the results card
+function changeLocationHeader(place){
    let t = fromWhen.value + "T00:00"
    let realDate = new Date(t)
  
@@ -203,6 +115,7 @@ searchCountySelect.addEventListener("change", function searchCounty(){
    searchDate.innerHTML = readableDate;
  }
 
+ //this formats the date to match the dates in the api strings
  function cleanDate(aDate){
    dd = String(aDate.getDate()).padStart(2, '0');
    mm = String(aDate.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -211,18 +124,17 @@ searchCountySelect.addEventListener("change", function searchCounty(){
    return newCleanDate;
  }
 
+ //this returns a number string with commas
 function numberWithCommas(x) {
    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-
+//figures out the mortality rate and survival rate along with active caes.
 function populateRates(){
 let mortalRate = null;
 let survRate = null;
 let activeCases = null;
 
-console.log(totalCases)
-console.log(totalDeaths)
-console.log(totalRecovered)
+
 
 mortalRate = (totalDeaths/totalCases)*100
 mortalRate = Math.round(mortalRate)
@@ -230,9 +142,7 @@ survRate = (totalRecovered/totalCases)*100
 survRate = Math.round(survRate)
 activeCases = totalCases - totalRecovered
 
-console.log(mortalRate)
-console.log(survRate)
-console.log(activeCases)
+
 
 if(!mortalRate){
    mortRate.innerHTML = ("Mortality rate unknown")
@@ -249,7 +159,7 @@ if(!activeCases){
 
    
 }
-
+//returns a clean discription of where you are serching for UI
 function findThePlace(){
    let thePlace = null;
          if (searchCountySelect.value === "" && searchStateSelect.value !== ""){thePlace = searchStateSelect.value};
@@ -265,13 +175,17 @@ function findThePlace(){
       return thePlace;
 }
 
-
+//the function waits until all totals are back from the async functions
 function areStatsPopulated(){
-if(!totalCases && !totalDeaths && !totalRecovered && !totalActive){
+   
+  if(totalCases && totalDeaths && totalRecovered ){
+   
    populateRates()
-}
+  }
+
 }
 
+//resets mortality rate and survival rate along with active caes.
 function resetRates(){
  totalCases = null;
  totalDeaths = null;
@@ -279,7 +193,7 @@ function resetRates(){
  totalActive = null;
 }
 
-
+//shows errors in the DOM if there is an error from the api
 function showError(error){
    //create div
    const errorDiv = document.createElement('div');
@@ -301,9 +215,175 @@ function showError(error){
    
 }
 
+//clears the error in the DOM from ui
 function clearError(){
 document.querySelector('.alert').remove();
 }
+
+//makes 3 api calls for cases, deaths and recovered retuns per Country numbers
+function changeCounty(){
+  showLoading()
+  USdayOneCases.getCasesPerCounty()
+  .then(data => ui.setCases(data))
+  .catch(err => showError(err));
+ 
+  USdayOneDeaths.getCasesPerCounty()
+  .then(data => ui.setDeaths(data))
+  .catch(err => showError(err));
+
+  USdayOneReco.getCasesPerCounty()
+  .then(data => ui.setRecovered(data))
+  .catch(err => showError(err));
+
+  let countryText = searchCountry.options[searchCountry.selectedIndex].text
+  changeLocationHeader(countryText)
+   
+   
+ 
+ }
+
+//Calls and sets cases from pre pop USA data,  retuns per County numbers
+ function changeCountry(){
+  showLoading()
+   popStateList()
+   resetRates()
+   let newSlug = new SlugMaker("confirmed",false);
+   
+   let newCases = new RecordSet(newSlug.returnUrl());
+     
+   newCases.getCasesPerCountry()
+   .then(data => ui.setCases(data))
+   .catch(data => showError(err));
+  
+   
+   newSlug = new SlugMaker("deaths",false);
+ 
+   let newDeaths = new RecordSet(newSlug.returnUrl());
+     
+   newDeaths.getCasesPerCounty()
+   .then(data => ui.setDeaths(data))
+   .catch(err => showError(err));
+   
+   newSlug = new SlugMaker("recovered",false);
+
+   let newRecovered = new RecordSet(newSlug.returnUrl());
+     
+   newRecovered.getCasesPerCounty()
+   .then(data => ui.setRecovered(data))
+   .catch(err => showError(err));
+ 
+   let countryText = searchCountry.options[searchCountry.selectedIndex].text
+   changeLocationHeader(countryText)
+
+  
+ } 
+
+//Calls and sets cases from pre pop USA data,  retuns per State numbers
+ function changeState() {
+  showLoading()
+  popCountyList(); 
+   
+  
+  USdayOneCases.getCasesPerState()
+   .then(data => ui.setCases(data))
+   .catch(err => showError(err));
+  
+   USdayOneDeaths.getCasesPerState()
+   .then(data => ui.setDeaths(data))
+   .catch(err => showError(err));
+
+   USdayOneReco.getCasesPerState()
+   .then(data => ui.setRecovered(data))
+   .catch(err => showError(err));
+ 
+   let countryText = searchCountry.options[searchCountry.selectedIndex].text
+   changeLocationHeader(countryText)
+   
+   
+   
+   changeLocationHeader(searchStateSelect.value);
+ 
+   
+  
+ } 
+
+ // makes 3 api calls for cases, deaths and recovered country USA selected
+ function startUSA(){
+   resetRates()
+   let newSlug = new SlugMaker("confirmed",false);
+   
+   let newCases = new RecordSet(newSlug.returnUrl());
+     
+   newCases.getCasesPerCountry()
+   .then(data => ui.setCases(data))
+   .catch(err => showError(err));
+  
+   
+   newSlug = new SlugMaker("deaths",false);
+ 
+   let newDeaths = new RecordSet(newSlug.returnUrl());
+     
+   newDeaths.getCasesPerCountry()
+   .then(data => ui.setDeaths(data))
+   .catch(err => showError(err));
+   
+   newSlug = new SlugMaker("recovered",false);
+
+   let newRecovered = new RecordSet(newSlug.returnUrl());
+     
+   newRecovered.getCasesPerCountry()
+   .then(data => ui.setRecovered(data))
+   .catch(err => showError(err));
+ 
+   let countryText = searchCountry.options[searchCountry.selectedIndex].text
+   changeLocationHeader(countryText)
+
+   // this load the larger USdayOneData. This process take a few seconds.
+   USdayOneCases = new RecordSet("https://api.covid19api.com/dayone/country/united-states/status/confirmed");
+   USdayOneCases.collectData()
+   .then(data => console.log("day one Cases"))
+   .catch(err => showError(err));
+
+   USdayOneDeaths = new RecordSet("https://api.covid19api.com/dayone/country/united-states/status/deaths");
+   USdayOneDeaths.collectData()
+   .then(data => console.log("day one Deaths"))
+   .catch(err => showError(err));
+
+   USdayOneReco = new RecordSet("https://api.covid19api.com/dayone/country/united-states/status/recovered");
+   USdayOneReco.collectData()
+   .then(data => console.log("day one Recovered"))
+   .catch(err => showError(err));
+
+
+ }
+
+ //NEEDS WORK ONLY CALLS PER COUNTRY
+ function changeTime(){
+   
+  if(searchCountySelect.value !== ""){
+    changeCounty()
+  }
+  if(searchCountySelect.value === "" && searchStateSelect.value !== ""){
+    changeState()
+  }
+  if(searchCountySelect.value === "" && searchStateSelect.value === ""){
+    changeCountry()
+  }
+  
+    
+   
+}
+
+function showLoading(){
+   NewConfirmedlbl.value = "Loading..."
+   TotalConfirmedlbl.value = "Loading..."
+   NewDeathslbl.value = "Loading..."
+   TotalDeathslbl.value  = "Loading..."
+   NewRecoveredlbl.value = "Loading..."
+}
+
+
+
 
 
  

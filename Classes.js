@@ -57,19 +57,25 @@ class RecordSet{
   
    constructor(url){
       this.url = url
-      
+      this.summaryData = null;
+  }
+  async collectData(){
+   var response = await fetch(this.url);
+   var summaryData = await response.json();
+   this.summaryData = summaryData;
+   return summaryData;
   }
   
   async getCasesPerState(){
-   var response = await fetch(this.url);
-   var summaryData = await response.json();
+   //var response = await fetch(this.url);
+   //var summaryData = await response.json();
    let casesToday = null;
    let casesYesterday = null;
    let today = null;
    let theDayBefore = null;
    let aDate  = fromWhen.value;
       
-   summaryData.forEach(country => {
+   this.summaryData.forEach(country => {
       
       if(country.Province === searchStateSelect.value){
          
@@ -83,9 +89,11 @@ class RecordSet{
         
        if(today === aDate ) {
          casesToday =  casesToday + country.Cases
+         casesToday = Number(casesToday)
        }
        if(today === theDayBefore ) {
          casesYesterday =  casesYesterday + country.Cases
+         casesToday = Number(casesToday)
        }
        
 
@@ -99,15 +107,15 @@ class RecordSet{
    
   //get data for county
    async getCasesPerCounty(){
-   var response = await fetch(this.url);
-   var summaryData = await response.json();
+   //var response = await fetch(this.url);
+   //var summaryData = await response.json();
    let casesToday = null;
    let casesYesterday = null;
    let today = null;
    let theDayBefore = null;
    let aDate  = fromWhen.value;
    
-   summaryData.forEach(country => {
+   this.summaryData.forEach(country => {
     if(country.Province === searchStateSelect.value){
       
       if (country.City === searchCountySelect.value){
@@ -122,9 +130,11 @@ class RecordSet{
         
          if(today === aDate ) {
             casesToday =  casesToday + country.Cases
+            casesToday = Number(casesToday)
          }
          if(today === theDayBefore ) {
            casesYesterday =  casesYesterday + country.Cases
+           casesToday = Number(casesToday)
          }
        }
 
@@ -166,9 +176,11 @@ class RecordSet{
         
          if(today === aDate ) {
             casesToday =  casesToday + country.Cases
+            casesToday = Number(casesToday)
          }
          if(today === theDayBefore ) {
            casesYesterday =  casesYesterday + country.Cases
+           casesToday = Number(casesToday)
          }
        
 
@@ -183,7 +195,7 @@ class RecordSet{
 
 class SlugMaker{
 
-   constructor(caseType, live){
+   constructor(caseType, live, dayOne){
       
       this.country = searchCountry.value
       this.date = fromWhen.value
@@ -225,6 +237,8 @@ class SlugMaker{
    newUrlWithSlug = oldUrl + liveTag + countryTag + selectedCountry + statusTag + typeOfCase + beforeDate + yesterday + FirstTimeTag + today + secondTimeTag;
 
    
+
+   console.log(newUrlWithSlug)
    return newUrlWithSlug;
   }
 
@@ -252,18 +266,16 @@ class UI{
          
          
          let thePlace = findThePlace();
-         
-         
-           totalCases = this.totalCases
-           
+              
            if(!this.newCases || this.newCases === "null"){this.newCases = "No data this day."
            } else{this.newCases = numberWithCommas(this.newCases)}
+           
                            
            NewConfirmed.innerHTML = `New confirmed cases in ${thePlace} (${this.newCases})`
-
+           totalCases = this.totalCases
            if(!this.totalCases || this.totalCases === "null"){this.totalCases = "No data this day."
            } else{this.totalCases = numberWithCommas(this.totalCases)}
-                     
+                   
            TotalConfirmed.innerHTML = `Total confirmed cases ${thePlace} (${this.totalCases})`
            areStatsPopulated()
            
@@ -298,11 +310,11 @@ class UI{
 
       setRecovered(answerObj){
          this.recovered = answerObj.CasesToday
-         totalRecovered = this.recovered
-                  
+         
+         totalRecovered = this.recovered        
          if(!this.recovered || this.recovered === "null"){this.recovered = "No data this day."
          }else{this.recovered = numberWithCommas(this.recovered)}
-
+         
          let thePlace = findThePlace();
          NewRecovered.innerHTML = `Confirmed recoveries in ${thePlace} (${this.recovered})`
          areStatsPopulated()
