@@ -34,16 +34,18 @@ class StateList{
            var arrayOfStates = [];
            
            summaryData.forEach(Province => {
+            
                 arrayOfStates.push(Province.Province);
             });
             //remove duplicates
             arrayOfStates = arrayOfStates.filter((a, b) => arrayOfStates.indexOf(a) === b)
-
+            
             //Sort
             arrayOfStates = arrayOfStates.sort();
             searchStateSelect.options[searchStateSelect.options.length] = new Option('', '', true,true);
             arrayOfStates.forEach(arrayOfStates =>{
                //add to select state list box
+               
                searchStateSelect.options[searchStateSelect.options.length] = new Option(arrayOfStates);
             })
 

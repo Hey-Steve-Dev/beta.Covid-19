@@ -52,7 +52,7 @@ function popStateList(){
   for (i = length-1; i >= 0; i--) {
   searchStateSelect.options[i] = null;
   } 
-   let newSlug = new SlugMaker("confirmed",true);
+   let newSlug = new SlugMaker("confirmed",false);
    var states = new StateList(newSlug.returnUrl());
    states.getAllStates()
    .then(data => startUSA() )
